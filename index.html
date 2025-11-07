@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+    </script>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+        <header class="game-header">
+            <h1 class="game-title">
+                <span class="letter">T</span><span class="letter">I</span><span class="letter">C</span><span class="letter"> </span><span class="letter">T</span><span class="letter">A</span><span class="letter">C</span><span class="letter"> </span><span class="letter">T</span><span class="letter">O</span><span class="letter">E</span>
+            </h1>
+            <div class="subtitle">Multiplayer Game</div>
+        </header>
+
+        <!-- Mode Selection -->
+        <div class="mode-selection" id="modeSelection">
+            <h2 class="mode-title">Select Game Mode</h2>
+            <div class="mode-buttons">
+                <button class="mode-btn" id="localMode">
+                    <span class="mode-icon">👥</span>
+                    <div class="mode-name">Local Multiplayer</div>
+                    <div class="mode-desc">Play with a friend on the same device</div>
+                </button>
+                <button class="mode-btn" id="onlineMode">
+                    <span class="mode-icon">🌐</span>
+                    <div class="mode-name">Online Multiplayer</div>
+                    <div class="mode-desc">Play with anyone around the world</div>
+                </button>
+                <button class="mode-btn" id="aiMode">
+                    <span class="mode-icon">🤖</span>
+                    <div class="mode-name">VS Computer</div>
+                    <div class="mode-desc">Challenge an intelligent AI opponent</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Online Setup -->
+        <div class="online-setup" id="onlineSetup" style="display: none;">
+            <h2 class="setup-title">Online Multiplayer</h2>
+            <div class="online-options">
+                <button class="online-option-btn" id="createRoomBtn">
+                    <span class="option-icon">➕</span>
+                    <div class="option-name">Create Room</div>
+                    <div class="option-desc">Start a new game and share code</div>
+                </button>
+                <button class="online-option-btn" id="joinRoomBtn">
+                    <span class="option-icon">🔗</span>
+                    <div class="option-name">Join Room</div>
+                    <div class="option-desc">Enter a room code to join</div>
+                </button>
+            </div>
+            <button class="back-btn" id="backToModeBtn">← Back</button>
+        </div>
+
+        <!-- Create Room Name Input Screen -->
+        <div class="room-screen" id="createRoomNameScreen" style="display: none;">
+            <h2 class="setup-title">Create Room</h2>
+            <div class="input-group">
+                <label for="hostName">Your Name</label>
+                <input type="text" id="hostName" placeholder="Enter your name" maxlength="15" value="">
+            </div>
+            <button class="start-btn" id="confirmCreateBtn">Create Room</button>
+            <button class="back-btn" id="backFromNameBtn">← Back</button>
+        </div>
+
+        <!-- Waiting Room Screen -->
+        <div class="room-screen" id="waitingRoomScreen" style="display: none;">
+            <h2 class="setup-title">Room Created!</h2>
+            <div class="room-code-display">
+                <div class="room-code-label">Room Code</div>
+                <div class="room-code" id="roomCode">------</div>
+                <button class="copy-btn" id="copyCodeBtn">Copy Code</button>
+            </div>
+            <div class="connection-status" id="connectionStatus">
+                <div class="status-indicator"></div>
+                <div class="status-text">Connected</div>
+            </div>
+            <div class="waiting-status">
+                <div class="waiting-spinner"></div>
+                <div class="waiting-text">Waiting for opponent to join...</div>
+            </div>
+            <button class="back-btn" id="backFromCreateBtn">← Back</button>
+        </div>
+
+        <!-- Join Room Screen -->
+        <div class="room-screen" id="joinRoomScreen" style="display: none;">
+            <h2 class="setup-title">Join Room</h2>
+            <div class="input-group">
+                <label for="guestName">Your Name</label>
+                <input type="text" id="guestName" placeholder="Enter your name" maxlength="15" value="">
+            </div>
+            <div class="input-group">
+                <label for="roomCodeInput">Room Code</label>
+                <input type="text" id="roomCodeInput" placeholder="Enter room code" maxlength="20" style="text-transform: uppercase;">
+            </div>
+            <button class="start-btn" id="joinGameBtn">Join Game</button>
+            <button class="back-btn" id="backFromJoinBtn">← Back</button>
+        </div>
+
+        <!-- Player Setup -->
+        <div class="player-setup" id="playerSetup" style="display: none;">
+            <h2 class="setup-title">Player Setup</h2>
+            <div class="input-group">
+                <label for="player1Name">Player 1 (X)</label>
+                <input type="text" id="player1Name" placeholder="Enter player name" maxlength="15" value="Player 1">
+            </div>
+            <div class="input-group">
+                <label for="player2Name">Player 2 (O)</label>
+                <input type="text" id="player2Name" placeholder="Enter player name" maxlength="15" value="Player 2">
+            </div>
+            <button class="start-btn" id="startGame">Start Game</button>
+        </div>
+
+        <!-- Game Container -->
+        <div class="game-container" id="gameContainer" style="display: none;">
+            <div class="scoreboard">
+                <div class="player-info player1-info">
+                    <div class="player-avatar">
+                        <span class="avatar-symbol">X</span>
+                    </div>
+                    <div class="player-details">
+                        <div class="player-name">
+                            <span id="player1NameDisplay">Player 1</span>
+                            <span class="host-crown" id="hostCrown" style="display: none;">👑</span>
+                        </div>
+                        <div class="player-score">Score: <span id="player1Score">0</span></div>
+                    </div>
+                </div>
+
+                <div class="vs-divider">VS</div>
+
+                <div class="player-info player2-info">
+                    <div class="player-avatar">
+                        <span class="avatar-symbol">O</span>
+                    </div>
+                    <div class="player-details">
+                        <div class="player-name" id="player2NameDisplay">Player 2</div>
+                        <div class="player-score">Score: <span id="player2Score">0</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="turn-indicator">
+                <div class="turn-text">Current Turn</div>
+                <div class="turn-player" id="currentPlayer">Player 1</div>
+            </div>
+
+            <div class="board" id="board">
+                <div class="cell" data-cell></div>
+                <div class="cell" data-cell></div>
+                <div class="cell" data-cell></div>
+                <div class="cell" data-cell></div>
+                <div class="cell" data-cell></div>
+                <div class="cell" data-cell></div>
+                <div class="cell" data-cell></div>
+                <div class="cell" data-cell></div>
+                <div class="cell" data-cell></div>
+            </div>
+
+            <div class="game-controls">
+                <button class="control-btn reset-btn" id="resetBtn">
+                    <span class="btn-icon">🔄</span>
+                    <span>New Round</span>
+                </button>
+                <button class="control-btn menu-btn" id="menuBtn">
+                    <span class="btn-icon">🏠</span>
+                    <span>Menu</span>
+                </button>
+            </div>
+
+            <!-- Chat Box (Only for online mode) -->
+            <div class="chat-container" id="chatContainer" style="display: none;">
+                <div class="chat-header">
+                    <span class="chat-title">💬 Chat</span>
+                    <button class="chat-toggle" id="chatToggle">−</button>
+                </div>
+                <div class="chat-messages" id="chatMessages"></div>
+                <div class="chat-input-container">
+                    <input type="text" id="chatInput" class="chat-input" placeholder="Type a message..." maxlength="100">
+                    <button class="chat-send" id="chatSend">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Waiting for Opponent Overlay -->
+        <div class="waiting-overlay" id="waitingOverlay" style="display: none;">
+            <div class="waiting-overlay-content">
+                <div class="waiting-spinner-large"></div>
+                <div class="waiting-overlay-text">Waiting for opponent...</div>
+                <div class="waiting-overlay-subtext">Your opponent needs to click "Play Again"</div>
+            </div>
+        </div>
+
+        <!-- Winner Modal -->
+        <div class="modal" id="winnerModal">
+            <div class="modal-content">
+                <div class="confetti" id="confetti"></div>
+                <div class="winner-icon" id="winnerIcon">🏆</div>
+                <h2 class="winner-text" id="winnerText">Player 1 Wins!</h2>
+                <div class="winner-subtitle" id="winnerSubtitle">Congratulations!</div>
+                <div class="modal-buttons">
+                    <button class="modal-btn play-again-btn" id="playAgainBtn">Play Again</button>
+                    <button class="modal-btn menu-modal-btn" id="menuModalBtn">Menu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
