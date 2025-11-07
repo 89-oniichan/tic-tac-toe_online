@@ -1,7 +1,7 @@
 # Tic Tac Toe - Multiplayer Game
 
 A modern, feature-rich Tic Tac Toe game with multiple game modes and real-time multiplayer capabilities.
-playable on xox.oniisama.com
+Playable online: https://xox.oniisama.com
 
 ## Features
 
