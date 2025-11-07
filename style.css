@@ -50,7 +50,11 @@ body {
     position: absolute;
     background: rgba(212, 175, 55, 0.4);
     border-radius: 50%;
+    /* start hidden to avoid brief visible dots before animation kicks in */
+    opacity: 0;
     animation: particleFloat 8s infinite ease-in-out;
+    animation-fill-mode: both;
+    will-change: transform, opacity;
 }
 
 @keyframes particleFloat {
@@ -900,7 +904,10 @@ body {
     height: 8px;
     border-radius: 2px;
     top: -10px;
+    /* hide by default to prevent tiny squares showing at top on load */
+    opacity: 0;
     animation: confettiFall 2.5s ease-in;
+    animation-fill-mode: both;
 }
 
 @keyframes confettiFall {
