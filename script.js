@@ -201,6 +201,15 @@ function startGame() {
     gameState.gameActive = true;
     updateTurnDisplay();
     updatePlayerHighlight();
+
+    // If AI mode and computer goes first, make AI move
+    if (gameState.gameMode === 'ai' && gameState.currentPlayer === 'O') {
+        gameState.isAIThinking = true;
+        setTimeout(() => {
+            makeAIMove();
+            gameState.isAIThinking = false;
+        }, 400);
+    }
 }
 
 function handleCellClick(index) {
