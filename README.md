@@ -78,9 +78,6 @@ The game is fully responsive and optimized for:
 - Tablets (≤640px)
 - Mobile phones (≤360px)
 
-## Security
-
-Firebase API keys in this repository are public by design. Security is enforced through Firebase Security Rules, not API key secrecy. See [SECURITY.md](SECURITY.md) for details.
 
 ## License
 
